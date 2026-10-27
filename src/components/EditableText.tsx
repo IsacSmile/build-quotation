@@ -86,6 +86,9 @@ export const EditableText: React.FC<EditableTextProps> = ({
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
     }
+    if (val === lastCommittedRef.current) {
+      return;
+    }
     lastCommittedRef.current = val;
     onCommit(val);
   };
@@ -128,13 +131,18 @@ export const EditableText: React.FC<EditableTextProps> = ({
 
     if (!elementRef.current) return;
     const currentText = elementRef.current.textContent || '';
-    commitValue(currentText);
-    setIsEmpty(currentText.trim() === '');
-
-    if (renderBlurred && elementRef.current) {
-      // While blurred, render formatted bold & italic HTML
-      elementRef.current.innerHTML = parseInlineToHtml(currentText, multiline);
+    if (currentText !== lastCommittedRef.current) {
+      commitValue(currentText);
     }
+
+    if (renderBlurred) {
+      elementRef.current.innerHTML = parseInlineToHtml(value, multiline);
+    } else {
+      if (elementRef.current.textContent !== value) {
+        elementRef.current.textContent = value;
+      }
+    }
+    setIsEmpty(!value || value.trim() === '');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {

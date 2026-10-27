@@ -2,8 +2,10 @@ import React, { createContext, useContext, useEffect, useReducer, useRef } from 
 import { AppState, Quotation, Settings } from '../types';
 import { AppAction, appReducer } from './reducer';
 import {
+  STORAGE_KEYS,
   loadQuotationsFromStorage,
   loadSettingsFromStorage,
+  safeSetItem,
   saveQuotationsToStorage,
   saveSettingsToStorage,
 } from './storage';
@@ -11,6 +13,8 @@ import {
 interface QuotationContextType {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
+  quotations: Quotation[];
+  activeQuotationId: string;
   activeQuotation: Quotation | undefined;
   settings: Settings;
   isSaved: boolean;
@@ -62,6 +66,12 @@ export const QuotationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return () => clearTimeout(timer);
   }, [state.quotations, state.activeQuotationId, state.settings, state.isSaved, state.storageError]);
 
+  // Persist activeQuotationId immediately on switch so reloads preserve active quotation selection
+  useEffect(() => {
+    if (isInitialMount.current) return;
+    safeSetItem(STORAGE_KEYS.ACTIVE_ID, state.activeQuotationId);
+  }, [state.activeQuotationId]);
+
   const activeQuotation = state.quotations.find((q) => q.id === state.activeQuotationId);
 
   return (
@@ -69,6 +79,8 @@ export const QuotationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       value={{
         state,
         dispatch,
+        quotations: state.quotations,
+        activeQuotationId: state.activeQuotationId,
         activeQuotation,
         settings: state.settings,
         isSaved: state.isSaved,

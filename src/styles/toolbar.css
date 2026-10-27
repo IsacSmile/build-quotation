@@ -1,0 +1,429 @@
+/* ==========================================================================
+   Toolbar & Quotation List Styles (Phase 6)
+   ========================================================================== */
+
+/* Top Toolbar */
+.app-toolbar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 56px;
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 100;
+  box-sizing: border-box;
+}
+
+/* Toolbar Left: Brand & Editable Title */
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.toolbar-brand {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--border-light);
+  flex-shrink: 0;
+}
+
+.toolbar-title-wrapper {
+  flex: 1;
+  max-width: 440px;
+  min-width: 120px;
+}
+
+.toolbar-title-input {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: text;
+}
+
+.toolbar-title-input:hover {
+  background-color: #f3f4f6;
+}
+
+.toolbar-title-input:focus {
+  background-color: #ffffff;
+  box-shadow: 0 0 0 2px var(--primary-light), 0 0 0 3px var(--primary);
+  outline: none;
+}
+
+/* Toolbar Right: Action Buttons and Saved Indicator */
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.toolbar-btn {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-medium);
+  background-color: #ffffff;
+  color: var(--text-main);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease-in-out;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.toolbar-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--primary);
+}
+
+.toolbar-btn--primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.toolbar-btn--primary:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+  color: #ffffff;
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+  color: var(--text-muted);
+}
+
+.toolbar-btn-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* Saved Status Indicator */
+.toolbar-saved-indicator {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  transition: all 0.2s ease-in-out;
+}
+
+.toolbar-saved-indicator--saved {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.toolbar-saved-indicator--saving {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
+
+.toolbar-saved-indicator--error {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Responsive Toolbar */
+@media (max-width: 768px) {
+  .app-toolbar {
+    padding: 0 12px;
+  }
+
+  .toolbar-brand {
+    font-size: 13px;
+  }
+
+  .toolbar-btn {
+    padding: 0 10px;
+  }
+
+  .toolbar-btn-text {
+    display: none;
+  }
+
+  .toolbar-btn-icon {
+    font-size: 16px;
+    margin: 0;
+  }
+}
+
+/* ==========================================================================
+   Quotation List Slide-over (Matches SettingsPanel pattern)
+   ========================================================================== */
+
+.quotation-list-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 440px;
+  max-width: 100vw;
+  background-color: #ffffff;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 1001;
+  animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.quotation-list-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.quotation-list-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quotation-list-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.quotation-list-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quotation-list-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Quotation Item Row */
+.quotation-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  background-color: #ffffff;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease-in-out;
+}
+
+.quotation-row:hover {
+  border-color: var(--border-medium);
+  background-color: #f8fafc;
+  box-shadow: var(--shadow-sm);
+}
+
+.quotation-row:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.quotation-row--active {
+  border-color: var(--primary);
+  background-color: #f0f7ff;
+}
+
+.quotation-row-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quotation-row-title-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.quotation-row-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quotation-badge-active {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: var(--primary);
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.quotation-row-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quotation-row-meta-dot {
+  font-size: 8px;
+  color: var(--text-light);
+}
+
+/* Quotation Row Actions (Duplicate, Delete) */
+.quotation-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-left: 10px;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.quotation-row:hover .quotation-row-actions,
+.quotation-row:focus-within .quotation-row-actions {
+  opacity: 1;
+}
+
+/* Touch screens & mobile: always reveal row actions */
+@media (hover: none), (max-width: 768px) {
+  .quotation-row-actions {
+    opacity: 1;
+  }
+}
+
+.quotation-action-btn {
+  height: 28px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-medium);
+  background-color: #ffffff;
+  color: var(--text-main);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+
+.quotation-action-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.quotation-action-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.quotation-action-btn--delete:hover {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+  color: var(--danger);
+}
+
+/* Inline Delete Confirmation */
+.quotation-row-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #ffffff;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #fecaca;
+  box-shadow: var(--shadow-sm);
+  animation: fadeIn 0.15s ease-in-out;
+}
+
+.quotation-confirm-prompt {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.quotation-confirm-btn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: none;
+  cursor: pointer;
+}
+
+.quotation-confirm-btn--yes {
+  background-color: var(--danger);
+  color: #ffffff;
+}
+
+.quotation-confirm-btn--yes:hover {
+  background-color: #b91c1c;
+}
+
+.quotation-confirm-btn--no {
+  background-color: #f1f5f9;
+  color: var(--text-main);
+}
+
+.quotation-confirm-btn--no:hover {
+  background-color: #e2e8f0;
+}
+
+/* Empty list state */
+.quotation-list-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}

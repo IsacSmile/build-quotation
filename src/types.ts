@@ -36,6 +36,7 @@ export type Section = {
 export type Quotation = {
   id: string;
   title: string;
+  titleManual?: boolean;
   createdAt: number;
   updatedAt: number;
   sections: Section[];

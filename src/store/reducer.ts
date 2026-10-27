@@ -1,12 +1,12 @@
 import { AppState, Block, Quotation, Section, Settings } from '../types';
-import { DEFAULT_SETTINGS, createDefaultQuotation, createEmptyBlock, generateId } from './storage';
+import { DEFAULT_SETTINGS, createDefaultQuotation, createEmptyBlock, deriveClientTitle, generateId } from './storage';
 
 export type AppAction =
   | { type: 'SET_ACTIVE_QUOTATION'; payload: { id: string } }
   | { type: 'CREATE_QUOTATION'; payload?: { title?: string } }
   | { type: 'DUPLICATE_QUOTATION'; payload: { id: string } }
   | { type: 'DELETE_QUOTATION'; payload: { id: string } }
-  | { type: 'UPDATE_QUOTATION_TITLE'; payload: { id: string; title: string } }
+  | { type: 'UPDATE_QUOTATION_TITLE'; payload: { id: string; title: string; isManual?: boolean } }
   | { type: 'UPDATE_SECTION_HEADING'; payload: { quotationId: string; sectionId: string; heading: string } }
   | { type: 'ADD_SECTION'; payload: { quotationId: string; afterSectionId?: string; heading?: string; id?: string } }
   | { type: 'MOVE_SECTION'; payload: { quotationId: string; sectionId: string; direction: 'up' | 'down' } }
@@ -54,18 +54,96 @@ function convertBlockType(oldBlock: Block, newType: Block['type']): Block {
   }
 }
 
+function arraysEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+function isQuotationContentEqual(a: Quotation, b: Quotation): boolean {
+  if (a.title !== b.title) return false;
+  if (Boolean(a.titleManual) !== Boolean(b.titleManual)) return false;
+  if (a.sections.length !== b.sections.length) return false;
+
+  for (let i = 0; i < a.sections.length; i++) {
+    const s1 = a.sections[i];
+    const s2 = b.sections[i];
+    if (s1.id !== s2.id || s1.heading !== s2.heading) return false;
+    if (s1.blocks.length !== s2.blocks.length) return false;
+
+    for (let j = 0; j < s1.blocks.length; j++) {
+      const b1 = s1.blocks[j];
+      const b2 = s2.blocks[j];
+      if (b1.id !== b2.id || b1.type !== b2.type) return false;
+
+      if (b1.type === 'text') {
+        if (b1.content !== (b2 as typeof b1).content) return false;
+      } else if (b1.type === 'bullets' || b1.type === 'numbered') {
+        const items2 = (b2 as typeof b1).items;
+        if (!arraysEqual(b1.items, items2)) return false;
+      } else if (b1.type === 'group') {
+        const g2 = b2 as typeof b1;
+        if (b1.title !== g2.title) return false;
+        if (!arraysEqual(b1.items, g2.items)) return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+function isSettingsEqual(a: Settings, b: Settings): boolean {
+  return (
+    a.agencyName === b.agencyName &&
+    a.address === b.address &&
+    a.paymentEnabled === b.paymentEnabled &&
+    a.qrImage === b.qrImage &&
+    a.logo?.kind === b.logo?.kind &&
+    a.logo?.src === b.logo?.src &&
+    a.bank?.holder === b.bank?.holder &&
+    a.bank?.bankName === b.bank?.bankName &&
+    a.bank?.accountNo === b.bank?.accountNo &&
+    a.bank?.ifsc === b.bank?.ifsc &&
+    a.bank?.swift === b.bank?.swift &&
+    a.bank?.upiId === b.bank?.upiId
+  );
+}
+
 function updateQuotation(
   state: AppState,
   quotationId: string,
   updater: (q: Quotation) => Quotation
 ): AppState {
-  const nextQuotations = state.quotations.map((q) => {
-    if (q.id === quotationId) {
-      const updated = updater(q);
-      return { ...updated, updatedAt: Date.now() };
-    }
-    return q;
-  });
+  const currentQuotation = state.quotations.find((q) => q.id === quotationId);
+  if (!currentQuotation) return state;
+
+  const updated = updater(currentQuotation);
+  let nextTitle = updated.title;
+  if (!updated.titleManual) {
+    const derived = deriveClientTitle(updated.sections);
+    nextTitle = derived;
+  }
+
+  const finalQuotation: Quotation = {
+    ...updated,
+    title: nextTitle,
+  };
+
+  // If quotation content did not actually change, return original state (NO-OP)
+  if (isQuotationContentEqual(currentQuotation, finalQuotation)) {
+    return state;
+  }
+
+  const nextQuotations = state.quotations.map((q) =>
+    q.id === quotationId
+      ? {
+          ...finalQuotation,
+          updatedAt: Date.now(),
+        }
+      : q
+  );
 
   return {
     ...state,
@@ -75,18 +153,20 @@ function updateQuotation(
 }
 
 export function appReducer(state: AppState, action: AppAction): AppState {
+  console.log('[REDUCER ACTION]', action.type, action);
   switch (action.type) {
     case 'SET_SAVED_STATUS':
       return { ...state, isSaved: action.payload };
 
     case 'SET_ACTIVE_QUOTATION':
+      if (state.activeQuotationId === action.payload.id) return state;
       return {
         ...state,
         activeQuotationId: action.payload.id,
       };
 
     case 'CREATE_QUOTATION': {
-      const newQuotation = createDefaultQuotation(action.payload?.title || 'Untitled Quotation');
+      const newQuotation = createDefaultQuotation(action.payload?.title);
       return {
         ...state,
         quotations: [newQuotation, ...state.quotations],
@@ -100,39 +180,33 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       if (!source) return state;
 
       const duplicate: Quotation = {
-        ...JSON.parse(JSON.stringify(source)),
         id: generateId(),
-        title: `${source.title} (Copy)`,
+        title: `${source.title} (copy)`,
+        titleManual: true,
         createdAt: Date.now(),
         updatedAt: Date.now(),
-      };
-
-      // Assign fresh IDs to sections and blocks in duplicate
-      duplicate.sections = duplicate.sections.map((sec) => ({
-        ...sec,
-        id: generateId(),
-        blocks: sec.blocks.map((blk) => ({
-          ...blk,
+        sections: source.sections.map((sec) => ({
+          ...sec,
           id: generateId(),
+          blocks: sec.blocks.map((blk) => ({
+            ...blk,
+            id: generateId(),
+          })),
         })),
-      }));
-
-      const sourceIndex = state.quotations.findIndex((q) => q.id === action.payload.id);
-      const nextQuotations = [...state.quotations];
-      nextQuotations.splice(sourceIndex + 1, 0, duplicate);
+      };
 
       return {
         ...state,
-        quotations: nextQuotations,
-        activeQuotationId: duplicate.id,
+        quotations: [duplicate, ...state.quotations],
+        // Stays in list (does NOT switch active quotation)
         isSaved: false,
       };
     }
 
     case 'DELETE_QUOTATION': {
       if (state.quotations.length <= 1) {
-        // Always keep at least one quotation
-        const fresh = createDefaultQuotation('Untitled Quotation');
+        // Deleting the last remaining quotation creates a fresh default quotation
+        const fresh = createDefaultQuotation();
         return {
           ...state,
           quotations: [fresh],
@@ -142,10 +216,13 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       }
 
       const nextQuotations = state.quotations.filter((q) => q.id !== action.payload.id);
-      const nextActiveId =
-        state.activeQuotationId === action.payload.id
-          ? nextQuotations[0].id
-          : state.activeQuotationId;
+
+      // Deleting the ACTIVE quotation switches to the most recently updated remaining one:
+      let nextActiveId = state.activeQuotationId;
+      if (state.activeQuotationId === action.payload.id) {
+        const sortedRemaining = [...nextQuotations].sort((a, b) => b.updatedAt - a.updatedAt);
+        nextActiveId = sortedRemaining[0].id;
+      }
 
       return {
         ...state,
@@ -155,11 +232,24 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       };
     }
 
-    case 'UPDATE_QUOTATION_TITLE':
-      return updateQuotation(state, action.payload.id, (q) => ({
-        ...q,
-        title: action.payload.title,
-      }));
+    case 'UPDATE_QUOTATION_TITLE': {
+      const rawTitle = action.payload.title.slice(0, 80);
+      return updateQuotation(state, action.payload.id, (q) => {
+        if (!rawTitle || rawTitle.trim() === '') {
+          // Clearing title manually resets titleManual to false!
+          return {
+            ...q,
+            titleManual: false,
+            title: deriveClientTitle(q.sections),
+          };
+        }
+        return {
+          ...q,
+          titleManual: action.payload.isManual !== undefined ? action.payload.isManual : true,
+          title: rawTitle,
+        };
+      });
+    }
 
     case 'UPDATE_SECTION_HEADING':
       return updateQuotation(state, action.payload.quotationId, (q) => ({
@@ -318,20 +408,26 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     }
 
     case 'UPDATE_SETTINGS': {
+      const nextSettings: Settings = {
+        ...state.settings,
+        ...action.payload,
+        logo: {
+          ...state.settings.logo,
+          ...(action.payload.logo || {}),
+        },
+        bank: {
+          ...state.settings.bank,
+          ...(action.payload.bank || {}),
+        },
+      };
+
+      if (isSettingsEqual(state.settings, nextSettings)) {
+        return state;
+      }
+
       return {
         ...state,
-        settings: {
-          ...state.settings,
-          ...action.payload,
-          logo: {
-            ...state.settings.logo,
-            ...(action.payload.logo || {}),
-          },
-          bank: {
-            ...state.settings.bank,
-            ...(action.payload.bank || {}),
-          },
-        },
+        settings: nextSettings,
         isSaved: false,
       };
     }

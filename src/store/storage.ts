@@ -139,7 +139,8 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
 
   return {
     id: generateId(),
-    title,
+    title: title || 'Acme Corp',
+    titleManual: false,
     createdAt: now,
     updatedAt: now,
     sections,
@@ -187,6 +188,29 @@ export function saveSettingsToStorage(settings: Settings): { success: boolean; i
   return safeSetItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
 }
 
+export function deriveClientTitle(sections: Section[]): string {
+  if (!sections || sections.length === 0) return 'Untitled quotation';
+  const firstSection = sections[0];
+  if (!firstSection.blocks) return 'Untitled quotation';
+
+  for (const block of firstSection.blocks) {
+    if (block.type === 'text' && block.content) {
+      const lines = block.content.split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (/^Client\b/i.test(trimmed)) {
+          const match = trimmed.match(/^Client\s*[:\-]\s*(.*)$/i);
+          if (match && match[1] && match[1].trim()) {
+            return match[1].trim().slice(0, 80);
+          }
+        }
+      }
+    }
+  }
+
+  return 'Untitled quotation';
+}
+
 export function loadQuotationsFromStorage(): { quotations: Quotation[]; activeId: string } {
   try {
     const rawList = localStorage.getItem(STORAGE_KEYS.QUOTATIONS);
@@ -207,10 +231,29 @@ export function loadQuotationsFromStorage(): { quotations: Quotation[]; activeId
       return { quotations: initial, activeId: defaultQuotation.id };
     }
 
-    const resolvedActiveId =
-      activeId && parsed.some((q) => q.id === activeId) ? activeId : parsed[0].id;
+    // Migration: ensure every quotation has titleManual (defaulting to false if undefined)
+    let needsMigrationSave = false;
+    const migrated: Quotation[] = parsed.map((q) => {
+      if (typeof q.titleManual !== 'boolean') {
+        needsMigrationSave = true;
+      }
+      return {
+        ...q,
+        titleManual: typeof q.titleManual === 'boolean' ? q.titleManual : false,
+        title: q.title || deriveClientTitle(q.sections),
+      };
+    });
 
-    return { quotations: parsed, activeId: resolvedActiveId };
+    // If activeId exists and is in the list, use it; otherwise fall back to most recently updated
+    const sorted = [...migrated].sort((a, b) => b.updatedAt - a.updatedAt);
+    const resolvedActiveId =
+      activeId && migrated.some((q) => q.id === activeId) ? activeId : sorted[0].id;
+
+    if (needsMigrationSave) {
+      saveQuotationsToStorage(migrated, resolvedActiveId);
+    }
+
+    return { quotations: migrated, activeId: resolvedActiveId };
   } catch (e) {
     console.error('Failed to load quotations from storage. Backing up corrupt data.', e);
     try {
@@ -231,24 +274,6 @@ export function saveQuotationsToStorage(quotations: Quotation[], activeId: strin
     success: result1.success && result2.success,
     isQuotaError: Boolean(result1.isQuotaError || result2.isQuotaError),
   };
-}
-
-// Helper to derive title from the first section if needed
-export function deriveQuotationTitle(quotation: Quotation): string {
-  if (quotation.title && quotation.title.trim() && quotation.title !== 'Untitled') {
-    return quotation.title;
-  }
-  const firstSection = quotation.sections[0];
-  if (firstSection && firstSection.blocks.length > 0) {
-    const firstBlock = firstSection.blocks[0];
-    if (firstBlock.type === 'text') {
-      const match = firstBlock.content.match(/Client:\s*(.+)/i);
-      if (match && match[1].trim()) {
-        return match[1].trim();
-      }
-    }
-  }
-  return quotation.title || 'Untitled';
 }
 
 export function createEmptyBlock(type: Block['type']): Block {
