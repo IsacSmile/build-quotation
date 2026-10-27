@@ -2,6 +2,8 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import { useQuotation } from '../store/context';
 import { fileToDataUrl } from '../utils/image';
 import { LogoPicker } from './LogoPicker';
+import { BACKUP_STORAGE_KEY, BackupData, getLocalDateString, mergeQuotations, validateBackupJson } from '../utils/backup';
+import { saveQuotationsToStorage, saveSettingsToStorage } from '../store/storage';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -10,13 +12,26 @@ interface SettingsPanelProps {
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, triggerRef }) => {
-  const { settings, dispatch, isSaved, storageError } = useQuotation();
+  const { settings, dispatch, isSaved, storageError, quotations, activeQuotationId, flushSave } = useQuotation();
   const panelRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
 
   const [qrErrorMessage, setQrErrorMessage] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const qrInputRef = useRef<HTMLInputElement>(null);
+
+  // Backup states
+  const [lastBackupAt, setLastBackupAt] = useState<string | null>(() => {
+    return localStorage.getItem(BACKUP_STORAGE_KEY);
+  });
+  const [backupError, setBackupError] = useState<string | null>(null);
+  const [backupSuccess, setBackupSuccess] = useState<string | null>(null);
+  const [importPending, setImportPending] = useState<{
+    data: BackupData;
+    summary: string;
+    step: 'choose' | 'confirm_replace';
+  } | null>(null);
+  const backupFileInputRef = useRef<HTMLInputElement>(null);
 
   // Accessible unique IDs for form controls
   const agencyNameId = useId();
@@ -175,6 +190,137 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, t
   const handleResetConfirm = () => {
     dispatch({ type: 'RESET_SETTINGS' });
     setConfirmReset(false);
+  };
+
+  const handleExportBackup = () => {
+    flushSave();
+    const backupData: BackupData = {
+      app: 'quotation-builder',
+      schemaVersion: 1,
+      exportedAt: new Date().toISOString(),
+      activeQuotationId,
+      settings,
+      quotations,
+    };
+
+    const dateStr = getLocalDateString();
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `quotation-backup-${dateStr}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    const nowIso = new Date().toISOString();
+    localStorage.setItem(BACKUP_STORAGE_KEY, nowIso);
+    setLastBackupAt(nowIso);
+    setBackupSuccess('Backup exported successfully.');
+    setBackupError(null);
+  };
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setBackupError(null);
+    setBackupSuccess(null);
+    setImportPending(null);
+
+    if (file.size > 10 * 1024 * 1024) {
+      setBackupError('File exceeds 10 MB limit.');
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const result = validateBackupJson(text, file.size);
+      if (!result.valid || !result.data) {
+        setBackupError(result.error || 'Invalid backup file.');
+        return;
+      }
+
+      const expDate = result.data.exportedAt
+        ? new Date(result.data.exportedAt).toLocaleDateString()
+        : 'unknown date';
+      const hasSettings = Boolean(result.data.settings);
+      const summary = `${result.data.quotations.length} quotations, settings ${
+        hasSettings ? 'included' : 'not included'
+      }, exported on ${expDate}`;
+
+      setImportPending({
+        data: result.data,
+        summary,
+        step: 'choose',
+      });
+    } catch {
+      setBackupError('Failed to read backup file.');
+    }
+  };
+
+  const handleMerge = () => {
+    if (!importPending) return;
+
+    const merged = mergeQuotations(quotations, importPending.data.quotations);
+
+    // Save to storage first to detect quota full:
+    const saveRes = saveQuotationsToStorage(merged.quotations, merged.activeId);
+    if (saveRes.isQuotaError) {
+      saveQuotationsToStorage(quotations, activeQuotationId);
+      setBackupError('Storage is full. Import was cancelled and no changes were made.');
+      setImportPending(null);
+      return;
+    }
+
+    dispatch({
+      type: 'IMPORT_BACKUP_MERGE',
+      payload: {
+        quotations: merged.quotations,
+        activeId: merged.activeId,
+      },
+    });
+
+    setImportPending(null);
+    setBackupSuccess(`Imported ${importPending.data.quotations.length} quotations`);
+    setBackupError(null);
+  };
+
+  const handleReplaceAllConfirm = () => {
+    if (!importPending) return;
+
+    const newQuotations = importPending.data.quotations;
+    const newSettings = importPending.data.settings || settings;
+    const sorted = [...newQuotations].sort((a, b) => b.updatedAt - a.updatedAt);
+    const activeId =
+      (importPending.data.activeQuotationId &&
+        newQuotations.some((q) => q.id === importPending.data.activeQuotationId))
+        ? importPending.data.activeQuotationId
+        : sorted[0]?.id || newQuotations[0]?.id || '';
+
+    const qRes = saveQuotationsToStorage(newQuotations, activeId);
+    const sRes = saveSettingsToStorage(newSettings);
+
+    if (qRes.isQuotaError || sRes.isQuotaError) {
+      saveQuotationsToStorage(quotations, activeQuotationId);
+      saveSettingsToStorage(settings);
+      setBackupError('Storage is full. Import was cancelled and no changes were made.');
+      setImportPending(null);
+      return;
+    }
+
+    dispatch({
+      type: 'IMPORT_BACKUP_REPLACE',
+      payload: {
+        quotations: newQuotations,
+        settings: importPending.data.settings,
+        activeId,
+      },
+    });
+
+    setImportPending(null);
+    setBackupSuccess(`Imported ${newQuotations.length} quotations`);
+    setBackupError(null);
   };
 
   return (
@@ -407,6 +553,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, t
                 type="file"
                 accept=".png,.jpg,.jpeg,.svg,.webp"
                 className="visually-hidden"
+                aria-label="Upload UPI QR image file"
                 disabled={!settings.paymentEnabled}
                 onChange={handleQrUpload}
               />
@@ -414,6 +561,113 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, t
               {qrErrorMessage && (
                 <div className="settings-field-error" role="alert">
                   {qrErrorMessage}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* SECTION E: BACKUP */}
+          <section className="settings-group">
+            <h3 className="settings-group-title">E) Backup</h3>
+            <div className="settings-subgroup">
+              <div className="backup-actions">
+                <button
+                  type="button"
+                  className="settings-btn-primary"
+                  onClick={handleExportBackup}
+                >
+                  Export backup
+                </button>
+                <button
+                  type="button"
+                  className="settings-btn-secondary"
+                  onClick={() => backupFileInputRef.current?.click()}
+                >
+                  Import backup
+                </button>
+                <input
+                  ref={backupFileInputRef}
+                  type="file"
+                  accept=".json"
+                  className="visually-hidden"
+                  aria-label="Upload JSON backup file for import"
+                  onChange={handleFileSelected}
+                />
+              </div>
+
+              <div className="backup-last-time">
+                Last backup: {lastBackupAt ? new Date(lastBackupAt).toLocaleString() : 'Never'}
+              </div>
+
+              {backupError && (
+                <div className="settings-field-error" role="alert">
+                  {backupError}
+                </div>
+              )}
+
+              {backupSuccess && (
+                <div className="settings-field-success" role="status">
+                  {backupSuccess}
+                </div>
+              )}
+
+              {importPending && (
+                <div className="backup-import-prompt" role="region" aria-label="Import Options">
+                  <p className="backup-summary">{importPending.summary}</p>
+                  {importPending.step === 'choose' ? (
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className="settings-btn-primary-sm"
+                        onClick={handleMerge}
+                      >
+                        Merge
+                      </button>
+                      <button
+                        type="button"
+                        className="settings-btn-danger-outline"
+                        onClick={() => setImportPending({ ...importPending, step: 'confirm_replace' })}
+                      >
+                        Replace all
+                      </button>
+                      <button
+                        type="button"
+                        className="settings-btn-secondary-sm"
+                        onClick={() => setImportPending(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <p className="backup-confirm-warn">
+                        Are you sure? This will replace quotations AND settings on this device.
+                      </p>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          className="settings-btn-danger-sm"
+                          onClick={handleReplaceAllConfirm}
+                        >
+                          Yes, replace
+                        </button>
+                        <button
+                          type="button"
+                          className="settings-btn-secondary-sm"
+                          onClick={handleExportBackup}
+                        >
+                          Export current data first
+                        </button>
+                        <button
+                          type="button"
+                          className="settings-btn-secondary-sm"
+                          onClick={() => setImportPending(null)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

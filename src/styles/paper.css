@@ -186,9 +186,10 @@
 .editable:empty::before,
 .editable[data-empty="true"]::before {
   content: attr(data-placeholder);
-  color: #9ca3af;
+  color: #6b7280;
   pointer-events: none;
   font-weight: 400;
+  white-space: pre-line;
 }
 
 /* ==========================================================================

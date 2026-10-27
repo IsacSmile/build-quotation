@@ -569,3 +569,95 @@
   white-space: nowrap;
   border-width: 0;
 }
+
+/* Backup section styles */
+.backup-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.backup-last-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.settings-btn-primary {
+  background-color: var(--accent);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+}
+
+.settings-btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.settings-btn-primary-sm {
+  background-color: var(--accent);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.settings-btn-primary-sm:hover {
+  background-color: #1d4ed8;
+}
+
+.settings-btn-secondary {
+  background-color: #ffffff;
+  border: 1px solid var(--border-medium);
+  color: var(--text-main);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.settings-btn-secondary:hover {
+  background-color: #f3f4f6;
+}
+
+.settings-field-success {
+  color: #15803d;
+  font-size: 11px;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.backup-import-prompt {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.backup-summary {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.backup-confirm-warn {
+  font-size: 12px;
+  color: var(--danger);
+  font-weight: 500;
+  margin: 0;
+}
+

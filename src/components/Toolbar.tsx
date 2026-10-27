@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useQuotation } from '../store/context';
 import { EditableText } from './EditableText';
 import faizDevCoLogo from '../assets/logos/faiz-dev-co-logo.png';
@@ -10,6 +10,8 @@ interface ToolbarProps {
   quotationListTriggerRef?: React.RefObject<HTMLButtonElement | null>;
   settingsTriggerRef?: React.RefObject<HTMLButtonElement | null>;
 }
+
+import { isBlockNonEmpty } from '../store/storage';
 
 export const Toolbar: React.FC<ToolbarProps> = ({
   onNewQuotation,
@@ -28,8 +30,21 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   } = useQuotation();
 
   const [isExporting, setIsExporting] = useState(false);
+  const [emptySectionsWarning, setEmptySectionsWarning] = useState<number | null>(null);
   const [toast, setToast] = useState<{ text: string; type: 'error' | 'warning' } | null>(null);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Close pre-check notice on Escape key
+  useEffect(() => {
+    if (emptySectionsWarning === null) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setEmptySectionsWarning(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [emptySectionsWarning]);
 
   const showToast = (text: string, type: 'error' | 'warning') => {
     if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
@@ -56,7 +71,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleExportPdf = async () => {
+  const executeExport = async () => {
     if (isExporting) return;
     setIsExporting(true);
 
@@ -101,6 +116,41 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const handleExportPdf = async () => {
+    // 1. Blur and flush to inspect up-to-date quotation state
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    flushSave();
+
+    const latestState = getLatestState();
+    const currentQuotation =
+      latestState.quotations.find((q) => q.id === latestState.activeQuotationId) ||
+      latestState.quotations[0];
+
+    if (!currentQuotation) {
+      showToast('No active quotation to export.', 'error');
+      return;
+    }
+
+    // Check sections with headings but no non-empty content
+    const emptyCount = currentQuotation.sections.filter((s) => {
+      const hasHeading = Boolean(s.heading && s.heading.trim() !== '');
+      if (!hasHeading) return false;
+      const hasContent = s.blocks.some((b) => isBlockNonEmpty(b));
+      return !hasContent;
+    }).length;
+
+    if (emptyCount > 0) {
+      setEmptySectionsWarning(emptyCount);
+      return;
+    }
+
+    // No empty sections, export immediately
+    executeExport();
   };
 
   return (
@@ -215,6 +265,73 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             aria-live="polite"
           >
             <span>{toast.text}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Export Pre-Check Notice */}
+      {emptySectionsWarning !== null && (
+        <div
+          className="toolbar-precheck-notice"
+          role="alert"
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            backgroundColor: '#fffbeb',
+            borderBottom: '1px solid #fde68a',
+            padding: '8px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '13px',
+            color: '#92400e',
+            zIndex: 950,
+            boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
+          }}
+        >
+          <span className="toolbar-precheck-text">
+            {emptySectionsWarning} {emptySectionsWarning === 1 ? 'section is' : 'sections are'} empty and will print as {emptySectionsWarning === 1 ? 'heading' : 'headings'} only.
+          </span>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              type="button"
+              className="export-precheck-btn export-precheck-btn--confirm"
+              onClick={() => {
+                setEmptySectionsWarning(null);
+                executeExport();
+              }}
+              style={{
+                backgroundColor: '#d97706',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '4px 12px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Export anyway
+            </button>
+            <button
+              type="button"
+              className="export-precheck-btn export-precheck-btn--cancel"
+              onClick={() => setEmptySectionsWarning(null)}
+              style={{
+                backgroundColor: '#ffffff',
+                color: '#374151',
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                padding: '4px 12px',
+                fontSize: '12px',
+                fontWeight: 500,
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}

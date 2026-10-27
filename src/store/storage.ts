@@ -32,7 +32,7 @@ export const DEFAULT_SETTINGS: Settings = {
   },
 };
 
-export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
+export function createDefaultQuotation(title = 'Untitled quotation'): Quotation {
   const now = Date.now();
   const quotationSectionId = generateId();
 
@@ -44,7 +44,8 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
         {
           id: generateId(),
           type: 'text',
-          content: 'Client: Acme Corp\nInstagram Page: @acmecorp\nBusiness Type: Creative Agency & E-Commerce',
+          content: '',
+          hint: 'Client :\nInstagram Page :\nBusiness Type :',
         },
       ],
     },
@@ -55,7 +56,8 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
         {
           id: generateId(),
           type: 'text',
-          content: 'Design and end-to-end development of custom modern web platform with responsive layouts and seamless workflows.',
+          content: '',
+          hint: 'Describe the project scope...',
         },
       ],
     },
@@ -66,7 +68,8 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
         {
           id: generateId(),
           type: 'text',
-          content: 'Total Estimated Cost: **₹45,000**\nIncludes full design, frontend and backend implementation, testing, and deployment.',
+          content: '',
+          hint: 'Enter the total cost, for example ₹18,000 / - (INR)',
         },
       ],
     },
@@ -77,29 +80,10 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
         {
           id: generateId(),
           type: 'group',
-          title: 'Student Registration & Login',
-          items: [
-            'Student signup and verification via email OTP',
-            'Secure password reset and personal profile dashboard',
-          ],
-        },
-        {
-          id: generateId(),
-          type: 'group',
-          title: 'Course Management & Video Player',
-          items: [
-            'Interactive video player with lesson progress tracking',
-            'Downloadable resource files and lecture materials',
-          ],
-        },
-        {
-          id: generateId(),
-          type: 'group',
-          title: 'Payment Gateway & Certificates',
-          items: [
-            'Secure online payment integration with instant activation',
-            'Automated verifiable certificate generation upon completion',
-          ],
+          title: '',
+          items: [''],
+          hint: 'Feature group title',
+          bulletHint: 'Add a point',
         },
       ],
     },
@@ -110,7 +94,8 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
         {
           id: generateId(),
           type: 'text',
-          content: '• Phase 1: UX Wireframes & UI Approval (1 Week)\n• Phase 2: Core Development & Database Integration (2 Weeks)\n• Phase 3: QA Testing, Final Polish & Launch (1 Week)',
+          content: '',
+          hint: 'e.g. 18 - 20 Days',
         },
       ],
     },
@@ -121,7 +106,8 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
         {
           id: generateId(),
           type: 'text',
-          content: '• 100% intellectual property ownership transferred upon final payment.\n• 30 days of post-launch maintenance and technical support included.',
+          content: '',
+          hint: 'Add any extra details...',
         },
       ],
     },
@@ -132,7 +118,8 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
         {
           id: generateId(),
           type: 'text',
-          content: '1. **40%** upfront advance to initiate project development\n2. **30%** upon milestone 1 delivery and review\n3. **30%** upon final deployment and handover',
+          content: '',
+          hint: 'e.g. 40% upfront, 60% on delivery',
         },
       ],
     },
@@ -140,7 +127,7 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
 
   return {
     id: generateId(),
-    title: title || 'Acme Corp',
+    title: title || 'Untitled quotation',
     titleManual: false,
     createdAt: now,
     updatedAt: now,
@@ -289,4 +276,19 @@ export function createEmptyBlock(type: Block['type']): Block {
     case 'group':
       return { id, type: 'group', title: '', items: [''] };
   }
+}
+
+export function isBlockNonEmpty(block: Block): boolean {
+  if (block.type === 'text') {
+    return Boolean(block.content && block.content.trim() !== '');
+  }
+  if (block.type === 'bullets' || block.type === 'numbered') {
+    return block.items.some((item) => item && item.trim() !== '');
+  }
+  if (block.type === 'group') {
+    const hasTitle = Boolean(block.title && block.title.trim() !== '');
+    const hasItems = block.items.some((item) => item && item.trim() !== '');
+    return hasTitle || hasItems;
+  }
+  return false;
 }

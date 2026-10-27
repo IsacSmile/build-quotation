@@ -315,7 +315,7 @@ export const PdfDocument: React.FC<PdfDocumentProps> = ({
           const validBlocks = section.blocks.filter(isBlockNonEmpty);
 
           return (
-            <View key={section.id || sIdx} style={styles.sectionWrapper}>
+            <React.Fragment key={section.id || sIdx}>
               {/* Section Heading Bar: full width #f2f2f2, minPresenceAhead keeps it with first block */}
               {hasHeading && (
                 <View
@@ -323,7 +323,7 @@ export const PdfDocument: React.FC<PdfDocumentProps> = ({
                     styles.sectionHeadingBar,
                     sIdx === 0 ? { marginTop: 8 * PX } : undefined,
                   ]}
-                  minPresenceAhead={60 * PX}
+                  minPresenceAhead={80 * PX}
                 >
                   <Text style={styles.sectionHeadingText}>{section.heading}</Text>
                 </View>
@@ -425,7 +425,7 @@ export const PdfDocument: React.FC<PdfDocumentProps> = ({
 
                 return null;
               })}
-            </View>
+            </React.Fragment>
           );
         })}
 

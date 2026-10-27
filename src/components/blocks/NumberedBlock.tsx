@@ -89,7 +89,7 @@ export const NumberedBlock: React.FC<NumberedBlockProps> = ({
           <EditableText
             value={item}
             onCommit={(val) => handleItemCommit(idx, val)}
-            placeholder="Numbered item..."
+            placeholder={block.hint || "Numbered item..."}
             multiline={false}
             autoFocus={focusIndex === idx}
             className="block-numbered-input"

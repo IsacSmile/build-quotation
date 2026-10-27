@@ -89,7 +89,7 @@ export const BulletsBlock: React.FC<BulletsBlockProps> = ({
           <EditableText
             value={item}
             onCommit={(val) => handleItemCommit(idx, val)}
-            placeholder="Bullet item..."
+            placeholder={block.hint || "Bullet item..."}
             multiline={false}
             autoFocus={focusIndex === idx}
             className="block-bullet-input"

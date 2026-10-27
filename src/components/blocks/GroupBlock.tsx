@@ -115,7 +115,7 @@ export const GroupBlock: React.FC<GroupBlockProps> = ({
         <EditableText
           value={block.title}
           onCommit={handleTitleCommit}
-          placeholder="Group title"
+          placeholder={block.hint || "Group title"}
           multiline={false}
           autoFocus={autoFocus && bulletFocusIndex === null}
           className="block-group-title-input"
@@ -133,7 +133,7 @@ export const GroupBlock: React.FC<GroupBlockProps> = ({
             <EditableText
               value={item}
               onCommit={(val) => handleItemCommit(idx, val)}
-              placeholder="Feature item..."
+              placeholder={idx === 0 && block.bulletHint ? block.bulletHint : "Feature item..."}
               multiline={false}
               autoFocus={bulletFocusIndex === idx}
               className="block-bullet-input"

@@ -14,7 +14,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({ block, onUpdate, autoFocus
       <EditableText
         value={block.content}
         onCommit={onUpdate}
-        placeholder="Type here..."
+        placeholder={block.hint || "Type here..."}
         multiline={true}
         autoFocus={autoFocus}
         className="block-text-input"

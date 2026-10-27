@@ -4,18 +4,21 @@ export type TextBlock = {
   id: string;
   type: 'text';
   content: string;
+  hint?: string;
 };
 
 export type BulletsBlock = {
   id: string;
   type: 'bullets';
   items: string[];
+  hint?: string;
 };
 
 export type NumberedBlock = {
   id: string;
   type: 'numbered';
   items: string[];
+  hint?: string;
 };
 
 export type GroupBlock = {
@@ -23,6 +26,8 @@ export type GroupBlock = {
   type: 'group';
   title: string;
   items: string[];
+  hint?: string;
+  bulletHint?: string;
 };
 
 export type Block = TextBlock | BulletsBlock | NumberedBlock | GroupBlock;

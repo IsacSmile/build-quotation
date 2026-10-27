@@ -202,6 +202,7 @@ export const LogoPicker: React.FC = () => {
             type="file"
             accept=".png,.jpg,.jpeg,.svg,.webp"
             className="visually-hidden"
+            aria-label="Upload custom logo image file"
             onChange={handleCustomUpload}
           />
         </div>

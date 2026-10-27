@@ -19,6 +19,7 @@ interface QuotationContextType {
   settings: Settings;
   isSaved: boolean;
   storageError: boolean;
+  isStorageConflict: boolean;
   flushSave: () => void;
   getLatestState: () => AppState;
 }
@@ -45,7 +46,34 @@ export const QuotationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const latestStateRef = useRef(state);
   latestStateRef.current = state;
 
+  const [isStorageConflict, setIsStorageConflict] = React.useState(false);
+  const storageConflictRef = useRef(false);
+  storageConflictRef.current = isStorageConflict;
+
+  // Listen to storage events from other tabs
+  useEffect(() => {
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (
+        e.key === STORAGE_KEYS.QUOTATIONS ||
+        e.key === STORAGE_KEYS.SETTINGS ||
+        e.key === STORAGE_KEYS.ACTIVE_ID
+      ) {
+        storageConflictRef.current = true;
+        setIsStorageConflict(true);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageEvent);
+    return () => window.removeEventListener('storage', handleStorageEvent);
+  }, []);
+
   const flushSave = useCallback(() => {
+    // If another tab has modified storage, never overwrite it!
+    if (storageConflictRef.current) {
+      console.warn('Save aborted: storage was modified in another tab.');
+      return;
+    }
+
     const currentState = latestStateRef.current;
     if (currentState.isSaved) return;
 
@@ -67,6 +95,20 @@ export const QuotationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
+  // Global Ctrl/Cmd+S listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        flushSave();
+        dispatch({ type: 'SET_SAVED_STATUS', payload: true });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [flushSave]);
+
   // Expose flushSave on window for testing and programmatic invocation if needed
   useEffect(() => {
     (window as any).__flushSave = flushSave;
@@ -78,11 +120,13 @@ export const QuotationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Synchronously flush pending saves on pagehide, visibilitychange, and beforeunload
   useEffect(() => {
     const handleFlush = () => {
-      flushSave();
+      if (!storageConflictRef.current) {
+        flushSave();
+      }
     };
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
+      if (document.visibilityState === 'hidden' && !storageConflictRef.current) {
         flushSave();
       }
     };
@@ -92,7 +136,9 @@ export const QuotationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      flushSave();
+      if (!storageConflictRef.current) {
+        flushSave();
+      }
       window.removeEventListener('pagehide', handleFlush);
       window.removeEventListener('beforeunload', handleFlush);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -106,6 +152,7 @@ export const QuotationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return;
     }
 
+    if (storageConflictRef.current) return;
     if (state.isSaved) return;
 
     if (autosaveTimerRef.current) {
@@ -125,7 +172,7 @@ export const QuotationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Persist activeQuotationId immediately on switch so reloads preserve active quotation selection
   useEffect(() => {
-    if (isInitialMount.current) return;
+    if (isInitialMount.current || storageConflictRef.current) return;
     safeSetItem(STORAGE_KEYS.ACTIVE_ID, state.activeQuotationId);
   }, [state.activeQuotationId]);
 
@@ -146,6 +193,7 @@ export const QuotationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         settings: state.settings,
         isSaved: state.isSaved,
         storageError: state.storageError,
+        isStorageConflict,
         flushSave,
         getLatestState,
       }}

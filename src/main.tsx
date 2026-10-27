@@ -6,13 +6,17 @@ import './styles/fonts.css';
 import './styles/index.css';
 import { injectTypographyCssVariables } from './config/typography';
 
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 // Set CSS variables on :root before first render
 injectTypographyCssVariables();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <QuotationProvider>
-      <App />
-    </QuotationProvider>
+    <ErrorBoundary>
+      <QuotationProvider>
+        <App />
+      </QuotationProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );

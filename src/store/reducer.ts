@@ -19,7 +19,9 @@ export type AppAction =
   | { type: 'UPDATE_SETTINGS'; payload: Partial<Settings> }
   | { type: 'RESET_SETTINGS' }
   | { type: 'SET_SAVED_STATUS'; payload: boolean }
-  | { type: 'SET_STORAGE_ERROR'; payload: boolean };
+  | { type: 'SET_STORAGE_ERROR'; payload: boolean }
+  | { type: 'IMPORT_BACKUP_REPLACE'; payload: { quotations: Quotation[]; settings?: Settings; activeId: string } }
+  | { type: 'IMPORT_BACKUP_MERGE'; payload: { quotations: Quotation[]; activeId: string } };
 
 function convertBlockType(oldBlock: Block, newType: Block['type']): Block {
   const id = oldBlock.id;
@@ -448,6 +450,27 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         storageError: action.payload,
+      };
+    }
+
+    case 'IMPORT_BACKUP_REPLACE': {
+      return {
+        ...state,
+        quotations: action.payload.quotations,
+        settings: action.payload.settings ? { ...action.payload.settings } : state.settings,
+        activeQuotationId: action.payload.activeId,
+        isSaved: true,
+        storageError: false,
+      };
+    }
+
+    case 'IMPORT_BACKUP_MERGE': {
+      return {
+        ...state,
+        quotations: action.payload.quotations,
+        activeQuotationId: action.payload.activeId,
+        isSaved: true,
+        storageError: false,
       };
     }
 
