@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useQuotation } from '../store/context';
 import { EditableText } from './EditableText';
+import faizDevCoLogo from '../assets/logos/faiz-dev-co-logo.png';
 
 interface ToolbarProps {
   onNewQuotation: () => void;
@@ -106,7 +107,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     <header className="app-toolbar no-print" role="banner">
       {/* Left side: Brand + Title */}
       <div className="toolbar-left">
-        <span className="toolbar-brand">Quotation Builder</span>
+        <div className="toolbar-brand-container" title="Quotation Builder – Powered by Faiz Dev & Co.">
+          <img
+            src={faizDevCoLogo}
+            alt="Faiz Dev & Co."
+            className="toolbar-brand-logo"
+          />
+          <div className="toolbar-brand-text">
+            <span className="toolbar-brand">Quotation Builder</span>
+            <span className="toolbar-powered-by">Powered by Faiz Dev & Co.</span>
+          </div>
+        </div>
         <span className="toolbar-divider" aria-hidden="true" />
         <div className="toolbar-title-wrapper">
           <EditableText

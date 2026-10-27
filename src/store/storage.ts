@@ -1,4 +1,5 @@
 import { Block, Quotation, Section, Settings } from '../types';
+import defaultLogoUrl from '../assets/logos/faiz-dev-co-logo.png';
 
 export const STORAGE_KEYS = {
   QUOTATIONS: 'quotation_builder_quotations_v1',
@@ -18,7 +19,7 @@ export const DEFAULT_SETTINGS: Settings = {
   address: 'Kerala, Kazhakuttom, 695582',
   logo: {
     kind: 'prebuilt',
-    src: '',
+    src: defaultLogoUrl,
   },
   paymentEnabled: true,
   bank: {
