@@ -15,19 +15,20 @@ import { parseInline } from '../utils/richText';
 import { getGroupNumber } from '../utils/numbering';
 
 // Import font files
-import arimoRegular from '../assets/fonts/Arimo-Regular.ttf';
-import arimoBold from '../assets/fonts/Arimo-Bold.ttf';
-import arimoItalic from '../assets/fonts/Arimo-Italic.ttf';
-import arimoBoldItalic from '../assets/fonts/Arimo-BoldItalic.ttf';
+import montserratRegular from '../assets/fonts/Montserrat-Regular.ttf';
+import montserratBold from '../assets/fonts/Montserrat-Bold.ttf';
+import montserratItalic from '../assets/fonts/Montserrat-Italic.ttf';
+import montserratBoldItalic from '../assets/fonts/Montserrat-BoldItalic.ttf';
+import { FONT_FAMILY, SIZES, LINE_HEIGHT } from '../config/typography';
 
-// Register Arimo font family with 4 styles
+// Register Montserrat font family with 4 styles
 Font.register({
-  family: 'Arimo',
+  family: FONT_FAMILY,
   fonts: [
-    { src: arimoRegular, fontWeight: 'normal', fontStyle: 'normal' },
-    { src: arimoBold, fontWeight: 'bold', fontStyle: 'normal' },
-    { src: arimoItalic, fontWeight: 'normal', fontStyle: 'italic' },
-    { src: arimoBoldItalic, fontWeight: 'bold', fontStyle: 'italic' },
+    { src: montserratRegular, fontWeight: 'normal', fontStyle: 'normal' },
+    { src: montserratBold, fontWeight: 'bold', fontStyle: 'normal' },
+    { src: montserratItalic, fontWeight: 'normal', fontStyle: 'italic' },
+    { src: montserratBoldItalic, fontWeight: 'bold', fontStyle: 'italic' },
   ],
 });
 
@@ -48,8 +49,8 @@ const styles = StyleSheet.create({
     paddingBottom: 56,
     paddingLeft: 40,
     paddingRight: 40,
-    fontFamily: 'Arimo',
-    fontSize: 11 * PX,
+    fontFamily: FONT_FAMILY,
+    fontSize: SIZES.body * PX,
     color: COLOR_TEXT,
   },
   // Fixed Page Number render prop at bottom right
@@ -59,9 +60,9 @@ const styles = StyleSheet.create({
     right: 40,
   },
   pageNumberText: {
-    fontSize: 9 * PX,
+    fontSize: SIZES.pageNumber * PX,
     color: COLOR_SECONDARY,
-    fontFamily: 'Arimo',
+    fontFamily: FONT_FAMILY,
   },
   // Header styles (first page only)
   headerContainer: {
@@ -81,17 +82,17 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   agencyLabel: {
-    fontSize: 12 * PX,
+    fontSize: SIZES.headerLabel * PX,
     color: COLOR_TEXT,
   },
   agencyName: {
-    fontSize: 15 * PX,
+    fontSize: SIZES.headerName * PX,
     fontWeight: 'bold',
     color: COLOR_TEXT,
     marginTop: 2 * PX,
   },
   agencyAddress: {
-    fontSize: 12 * PX,
+    fontSize: SIZES.headerAddress * PX,
     color: COLOR_TEXT,
     marginTop: 2 * PX,
     lineHeight: 1.4,
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
     marginBottom: 8 * PX,
   },
   sectionHeadingText: {
-    fontSize: 11 * PX,
+    fontSize: SIZES.heading * PX,
     fontWeight: 'bold',
     color: COLOR_TEXT,
   },
@@ -129,9 +130,9 @@ const styles = StyleSheet.create({
     marginTop: 8 * PX,
   },
   bodyText: {
-    fontSize: 11 * PX,
+    fontSize: SIZES.body * PX,
     color: COLOR_TEXT,
-    lineHeight: 1.5,
+    lineHeight: LINE_HEIGHT,
   },
   // List items (bullets and numbered)
   listItemRow: {
@@ -144,14 +145,14 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   bulletMarker: {
-    fontSize: 11 * PX,
+    fontSize: SIZES.body * PX,
     color: COLOR_TEXT,
   },
   numberedMarkerCol: {
     width: 16 * PX,
   },
   numberedMarker: {
-    fontSize: 11 * PX,
+    fontSize: SIZES.body * PX,
     color: COLOR_TEXT,
   },
   listItemTextCol: {
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     marginBottom: 4 * PX,
   },
   groupTitleText: {
-    fontSize: 11 * PX,
+    fontSize: SIZES.body * PX,
     fontWeight: 'bold',
     fontStyle: 'italic',
     color: COLOR_TEXT,
@@ -199,9 +200,9 @@ const styles = StyleSheet.create({
     marginBottom: 3 * PX,
   },
   paymentDetailText: {
-    fontSize: 11 * PX,
+    fontSize: SIZES.body * PX,
     color: COLOR_TEXT,
-    lineHeight: 1.5,
+    lineHeight: LINE_HEIGHT,
   },
   boldText: {
     fontWeight: 'bold',

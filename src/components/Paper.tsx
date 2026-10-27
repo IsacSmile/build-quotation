@@ -36,6 +36,15 @@ export const Paper: React.FC<PaperProps> = ({ onOpenSettings }) => {
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
 
+    // Recompute after fonts finish loading to prevent layout gaps or clipping
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      document.fonts.ready.then(() => {
+        if (sheetRef.current) {
+          setSheetHeight(sheetRef.current.offsetHeight);
+        }
+      });
+    }
+
     // Observe sheet height changes to adjust wrapper height when scaled
     const observer = new ResizeObserver(() => {
       if (sheetRef.current) {
