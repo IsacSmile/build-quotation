@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 50" width="160" height="50">
+  <rect width="160" height="50" rx="6" fill="#111827"/>
+  <circle cx="28" cy="25" r="14" fill="#3b82f6"/>
+  <path d="M22 25 L27 30 L35 20" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="50" y="27" fill="#ffffff" font-family="Arial, sans-serif" font-size="14" font-weight="bold">FAIZ DEV</text>
+  <text x="50" y="38" fill="#9ca3af" font-family="Arial, sans-serif" font-size="9" letter-spacing="1">STUDIO</text>
+</svg>
