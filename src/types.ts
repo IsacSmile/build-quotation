@@ -67,4 +67,5 @@ export type AppState = {
   activeQuotationId: string;
   settings: Settings;
   isSaved: boolean;
+  storageError: boolean;
 };

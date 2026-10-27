@@ -1,0 +1,881 @@
+/* ==========================================================================
+   Paper Layout & Styles (A4 WYSIWYG)
+   ========================================================================== */
+
+/* Outer Viewport */
+.paper-viewport {
+  background-color: #e9ebee;
+  min-height: calc(100vh - 56px);
+  padding: 32px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Responsive Scale Wrapper */
+.paper-scale-container {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  transition: width 0.2s ease-out;
+}
+
+/* The A4 Sheet (794px width = 8.27in at 96dpi) */
+.paper-sheet {
+  width: 794px;
+  min-height: 1123px;
+  background-color: #ffffff;
+  padding: 48px 52px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #111111;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Pagination Note under the sheet */
+.paper-pagination-note {
+  margin-top: 16px;
+  font-size: 11px;
+  color: #888888;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+/* ==========================================================================
+   Header (matches reference quotation)
+   ========================================================================== */
+.paper-header {
+  cursor: pointer;
+  outline: none;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s;
+}
+
+.paper-header:hover {
+  background-color: rgba(238, 244, 255, 0.5);
+}
+
+.paper-header:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
+.paper-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.paper-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.paper-agency-label {
+  font-size: 12px;
+  font-weight: 400;
+  color: #111111;
+  letter-spacing: 0.02em;
+}
+
+.paper-agency-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111111;
+  margin-top: 1px;
+}
+
+.paper-agency-address {
+  font-size: 12px;
+  color: #111111;
+  white-space: pre-line;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.paper-header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.paper-logo {
+  max-height: 48px;
+  max-width: 180px;
+  object-fit: contain;
+}
+
+.paper-header-divider {
+  height: 1px;
+  background-color: #9a9a9a;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+/* ==========================================================================
+   Section & Heading Bar
+   ========================================================================== */
+.paper-sections-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.paper-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Full-width light grey heading bar */
+.section-heading-bar {
+  background-color: #f2f2f2;
+  padding: 6px 10px;
+  margin-top: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section-heading-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: #111111;
+  width: 100%;
+  min-height: 16px;
+  outline: none;
+  display: block;
+}
+
+/* Section Body & Blocks */
+.section-body {
+  padding: 8px 4px 6px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #111111;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   EditableText Primitive
+   ========================================================================== */
+.editable {
+  outline: none;
+  transition: background-color 0.15s, outline 0.15s;
+  cursor: text;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.editable:hover {
+  background-color: #eef4ff;
+  border-radius: 2px;
+}
+
+.editable:focus {
+  background-color: #ffffff;
+  outline: 1px solid var(--accent) !important;
+  border-radius: 2px;
+}
+
+.editable:empty::before,
+.editable[data-empty="true"]::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+  font-weight: 400;
+}
+
+/* ==========================================================================
+   Section Controls (Left margin, OUTSIDE sheet content area)
+   ========================================================================== */
+.section-controls-wrapper {
+  position: absolute;
+  left: -46px;
+  top: 20px;
+  width: 36px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-in-out;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.paper-section:hover .section-controls-wrapper,
+.paper-section:focus-within .section-controls-wrapper {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.section-controls {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.section-ctrl-btn {
+  width: 28px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.section-ctrl-btn:last-child {
+  border-bottom: none;
+}
+
+.section-ctrl-btn:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  color: var(--text-main);
+}
+
+.section-ctrl-btn--delete:hover {
+  background-color: #fee2e2 !important;
+  color: var(--danger) !important;
+}
+
+.section-ctrl-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.section-ctrl-btn:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
+/* Inline Delete Confirmation */
+.section-delete-confirm-banner {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  margin-top: 14px;
+  margin-bottom: -10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.section-delete-confirm-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.section-delete-confirm-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.section-confirm-btn {
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.section-confirm-btn--yes {
+  background-color: var(--danger);
+  color: #ffffff;
+}
+
+.section-confirm-btn--yes:hover {
+  background-color: #b91c1c;
+}
+
+.section-confirm-btn--no {
+  background-color: #ffffff;
+  border: 1px solid var(--border-medium);
+  color: var(--text-main);
+}
+
+/* ==========================================================================
+   Insert Between & Add Section Buttons
+   ========================================================================== */
+.section-insert-line-wrapper {
+  height: 12px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2px 0;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.section-insert-line-wrapper:hover,
+.section-insert-line-wrapper:focus-within {
+  opacity: 1;
+}
+
+.section-insert-line-wrapper::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #cbd5e1;
+}
+
+.section-insert-btn {
+  position: relative;
+  z-index: 2;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 1px 8px;
+  font-size: 10px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.section-insert-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.section-insert-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.section-insert-text {
+  font-weight: 500;
+}
+
+/* Bottom + Add section button */
+.add-section-bottom-wrapper {
+  margin-top: 24px;
+  padding-bottom: 8px;
+}
+
+.add-section-bottom-btn {
+  width: 100%;
+  border: 1px dashed #cbd5e1;
+  background-color: transparent;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.add-section-bottom-btn:hover {
+  background-color: #f8fafc;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.add-section-bottom-btn:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
+.add-section-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* ==========================================================================
+   Block Items, Spacing & Layout
+   ========================================================================== */
+.paper-block-item {
+  position: relative;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.paper-block-item:last-child {
+  margin-bottom: 0;
+}
+
+.paper-block-content {
+  width: 100%;
+}
+
+/* Text block */
+.block-text-wrapper {
+  width: 100%;
+}
+
+.block-text-input {
+  font-size: 11px;
+  line-height: 1.5;
+  color: #111111;
+  min-height: 18px;
+}
+
+/* Bullets block */
+.block-bullets-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.block-bullet-item {
+  display: flex;
+  align-items: flex-start;
+  padding-left: 16px;
+  position: relative;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.block-bullet-marker {
+  position: absolute;
+  left: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #111111;
+  user-select: none;
+}
+
+.block-bullet-input {
+  flex: 1;
+  min-height: 18px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* Numbered block */
+.block-numbered-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.block-numbered-item {
+  display: flex;
+  align-items: flex-start;
+  padding-left: 20px;
+  position: relative;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.block-numbered-marker {
+  position: absolute;
+  left: 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: #111111;
+  user-select: none;
+}
+
+.block-numbered-input {
+  flex: 1;
+  min-height: 18px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* Group block */
+.block-group-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.block-group-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.block-group-number {
+  font-size: 11px;
+  color: #111111;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.block-group-title-input {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 700;
+  font-style: italic;
+  color: #111111;
+  min-height: 18px;
+}
+
+.block-group-bullets {
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   Block Controls (RIGHT margin, outside content area)
+   ========================================================================== */
+.block-controls-wrapper {
+  position: absolute;
+  right: -52px;
+  top: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-in-out;
+  display: flex;
+  align-items: center;
+  z-index: 5;
+}
+
+.paper-block-item:hover .block-controls-wrapper,
+.paper-block-item:focus-within .block-controls-wrapper {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.block-controls-cluster {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  height: 22px;
+}
+
+.block-ctrl-btn {
+  width: 20px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-right: 1px solid var(--border-light);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.block-ctrl-btn:last-child {
+  border-right: none;
+}
+
+.block-ctrl-btn:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  color: var(--text-main);
+}
+
+.block-ctrl-btn--delete:hover {
+  background-color: #fee2e2 !important;
+  color: var(--danger) !important;
+}
+
+.block-ctrl-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.block-type-select {
+  height: 100%;
+  font-size: 10px;
+  border: none;
+  border-right: 1px solid var(--border-light);
+  background-color: transparent;
+  color: var(--text-main);
+  padding: 0 4px;
+  cursor: pointer;
+  outline: none;
+}
+
+.block-type-select:hover {
+  background-color: #f3f4f6;
+}
+
+/* Block delete confirm popup */
+.block-delete-confirm-popup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  height: 22px;
+  box-shadow: var(--shadow-sm);
+  animation: fadeIn 0.15s ease-out;
+}
+
+.block-delete-confirm-prompt {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.block-confirm-btn {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.block-confirm-btn--yes {
+  background-color: var(--danger);
+  color: #ffffff;
+}
+
+.block-confirm-btn--no {
+  background-color: #ffffff;
+  border: 1px solid var(--border-medium);
+  color: var(--text-main);
+}
+
+/* ==========================================================================
+   BlockPicker Component
+   ========================================================================== */
+.block-picker-container {
+  margin-top: 6px;
+  position: relative;
+  align-self: flex-start;
+}
+
+.add-block-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.add-block-btn:hover {
+  background-color: #f1f5f9;
+  color: var(--accent);
+}
+
+.add-block-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.add-first-block-btn {
+  width: 100%;
+  border: 1px dashed #cbd5e1;
+  background-color: #f8fafc;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.add-first-block-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background-color: #eff6ff;
+}
+
+.block-picker-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background-color: #ffffff;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 190px;
+  z-index: 50;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.block-picker-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  background-color: transparent;
+  transition: background-color 0.1s;
+}
+
+.block-picker-option:hover,
+.block-picker-option--active {
+  background-color: #f1f5f9;
+}
+
+.block-picker-option-icon {
+  width: 20px;
+  height: 20px;
+  background-color: #e2e8f0;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: #334155;
+  flex-shrink: 0;
+}
+
+.block-picker-option-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.block-picker-option-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.block-picker-option-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Payment Footer (matches reference quotation)
+   ========================================================================== */
+.paper-payment-footer {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 24px;
+  cursor: pointer;
+  outline: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  margin-left: -10px;
+  margin-right: -10px;
+  transition: background-color 0.15s;
+}
+
+.paper-payment-footer.editable-hint:hover {
+  background-color: rgba(238, 244, 255, 0.5);
+}
+
+.keep-together {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Left QR column */
+.payment-qr-col {
+  flex-shrink: 0;
+  width: 150px;
+}
+
+.payment-qr-img {
+  width: 150px;
+  height: auto;
+  border-radius: 14px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Right details column */
+.payment-details-col {
+  flex: 1;
+}
+
+.payment-details-col--full {
+  width: 100%;
+}
+
+.payment-details-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.payment-detail-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #111111;
+}
+
+.payment-bullet {
+  display: inline-block;
+  width: 16px;
+  flex-shrink: 0;
+  color: #111111;
+}
+
+.payment-text {
+  flex: 1;
+}
+
+.payment-text b {
+  font-weight: 700;
+}
+
+/* Editor-only empty state hint */
+.payment-empty-hint {
+  margin-top: 28px;
+  padding: 16px;
+  border: 1.5px dashed var(--border-medium);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: center;
+  cursor: pointer;
+  background-color: #fafbfc;
+  transition: all 0.15s ease-in-out;
+}
+
+.payment-empty-hint:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background-color: #f0f7ff;
+}
+
+/* Narrow viewport adjustment for block controls */
+@media (max-width: 768px) {
+  .block-controls-wrapper {
+    right: 0;
+    top: 0;
+  }
+}
+

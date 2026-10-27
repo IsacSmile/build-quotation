@@ -1,5 +1,5 @@
 import { AppState, Block, Quotation, Section, Settings } from '../types';
-import { createDefaultQuotation, createEmptyBlock, generateId } from './storage';
+import { DEFAULT_SETTINGS, createDefaultQuotation, createEmptyBlock, generateId } from './storage';
 
 export type AppAction =
   | { type: 'SET_ACTIVE_QUOTATION'; payload: { id: string } }
@@ -8,16 +8,18 @@ export type AppAction =
   | { type: 'DELETE_QUOTATION'; payload: { id: string } }
   | { type: 'UPDATE_QUOTATION_TITLE'; payload: { id: string; title: string } }
   | { type: 'UPDATE_SECTION_HEADING'; payload: { quotationId: string; sectionId: string; heading: string } }
-  | { type: 'ADD_SECTION'; payload: { quotationId: string; afterSectionId?: string; heading?: string } }
+  | { type: 'ADD_SECTION'; payload: { quotationId: string; afterSectionId?: string; heading?: string; id?: string } }
   | { type: 'MOVE_SECTION'; payload: { quotationId: string; sectionId: string; direction: 'up' | 'down' } }
   | { type: 'DELETE_SECTION'; payload: { quotationId: string; sectionId: string } }
-  | { type: 'ADD_BLOCK'; payload: { quotationId: string; sectionId: string; type: Block['type']; afterBlockId?: string } }
+  | { type: 'ADD_BLOCK'; payload: { quotationId: string; sectionId: string; type: Block['type']; afterBlockId?: string; id?: string } }
   | { type: 'UPDATE_BLOCK'; payload: { quotationId: string; sectionId: string; blockId: string; block: Partial<Block> } }
   | { type: 'MOVE_BLOCK'; payload: { quotationId: string; sectionId: string; blockId: string; direction: 'up' | 'down' } }
   | { type: 'DELETE_BLOCK'; payload: { quotationId: string; sectionId: string; blockId: string } }
   | { type: 'CHANGE_BLOCK_TYPE'; payload: { quotationId: string; sectionId: string; blockId: string; newType: Block['type'] } }
   | { type: 'UPDATE_SETTINGS'; payload: Partial<Settings> }
-  | { type: 'SET_SAVED_STATUS'; payload: boolean };
+  | { type: 'RESET_SETTINGS' }
+  | { type: 'SET_SAVED_STATUS'; payload: boolean }
+  | { type: 'SET_STORAGE_ERROR'; payload: boolean };
 
 function convertBlockType(oldBlock: Block, newType: Block['type']): Block {
   const id = oldBlock.id;
@@ -172,7 +174,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'ADD_SECTION': {
       return updateQuotation(state, action.payload.quotationId, (q) => {
         const newSection: Section = {
-          id: generateId(),
+          id: action.payload.id || generateId(),
           heading: action.payload.heading || '',
           blocks: [createEmptyBlock('text')],
         };
@@ -220,7 +222,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'ADD_BLOCK': {
       return updateQuotation(state, action.payload.quotationId, (q) => {
-        const newBlock = createEmptyBlock(action.payload.type);
+        const newBlock = {
+          ...createEmptyBlock(action.payload.type),
+          id: action.payload.id || generateId(),
+        };
 
         const nextSections = q.sections.map((sec) => {
           if (sec.id !== action.payload.sectionId) return sec;
@@ -328,6 +333,25 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           },
         },
         isSaved: false,
+      };
+    }
+
+    case 'RESET_SETTINGS': {
+      return {
+        ...state,
+        settings: {
+          ...DEFAULT_SETTINGS,
+          logo: { ...DEFAULT_SETTINGS.logo },
+          bank: { ...DEFAULT_SETTINGS.bank },
+        },
+        isSaved: false,
+      };
+    }
+
+    case 'SET_STORAGE_ERROR': {
+      return {
+        ...state,
+        storageError: action.payload,
       };
     }
 

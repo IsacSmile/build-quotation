@@ -76,20 +76,28 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
         {
           id: generateId(),
           type: 'group',
-          title: 'Core Platform & Architecture',
+          title: 'Student Registration & Login',
           items: [
-            'Responsive web application with high performance',
-            'Interactive client dashboard with live updates',
-            'Secure authentication and permission handling',
+            'Student signup and verification via email OTP',
+            'Secure password reset and personal profile dashboard',
           ],
         },
         {
           id: generateId(),
           type: 'group',
-          title: 'Integrations & Delivery',
+          title: 'Course Management & Video Player',
           items: [
-            'API integrations and automated email notifications',
-            'Analytics and tracking setup',
+            'Interactive video player with lesson progress tracking',
+            'Downloadable resource files and lecture materials',
+          ],
+        },
+        {
+          id: generateId(),
+          type: 'group',
+          title: 'Payment Gateway & Certificates',
+          items: [
+            'Secure online payment integration with instant activation',
+            'Automated verifiable certificate generation upon completion',
           ],
         },
       ],
@@ -100,12 +108,8 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
       blocks: [
         {
           id: generateId(),
-          type: 'bullets',
-          items: [
-            'Week 1: UX Wireframes & Design approval',
-            'Week 2-3: Core feature development & iterations',
-            'Week 4: QA testing, final fixes, and launch',
-          ],
+          type: 'text',
+          content: '• Phase 1: UX Wireframes & UI Approval (1 Week)\n• Phase 2: Core Development & Database Integration (2 Weeks)\n• Phase 3: QA Testing, Final Polish & Launch (1 Week)',
         },
       ],
     },
@@ -115,11 +119,8 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
       blocks: [
         {
           id: generateId(),
-          type: 'bullets',
-          items: [
-            '100% intellectual property ownership upon completion',
-            '30 days of free bug fixing & post-launch support included',
-          ],
+          type: 'text',
+          content: '• 100% intellectual property ownership transferred upon final payment.\n• 30 days of post-launch maintenance and technical support included.',
         },
       ],
     },
@@ -129,12 +130,8 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
       blocks: [
         {
           id: generateId(),
-          type: 'numbered',
-          items: [
-            '**40%** upfront advance to initiate the project',
-            '**30%** upon completion and review of core milestones',
-            '**30%** upon final testing and production deployment',
-          ],
+          type: 'text',
+          content: '1. **40%** upfront advance to initiate project development\n2. **30%** upon milestone 1 delivery and review\n3. **30%** upon final deployment and handover',
         },
       ],
     },
@@ -149,6 +146,20 @@ export function createDefaultQuotation(title = 'Acme Corp'): Quotation {
   };
 }
 
+export function safeSetItem(key: string, value: string): { success: boolean; isQuotaError?: boolean } {
+  try {
+    localStorage.setItem(key, value);
+    return { success: true };
+  } catch (error: any) {
+    const isQuota =
+      error?.name === 'QuotaExceededError' ||
+      error?.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      error?.code === 22 ||
+      error?.code === 1014;
+    return { success: false, isQuotaError: isQuota };
+  }
+}
+
 export function loadSettingsFromStorage(): Settings {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
@@ -161,17 +172,19 @@ export function loadSettingsFromStorage(): Settings {
       bank: { ...DEFAULT_SETTINGS.bank, ...(parsed.bank || {}) },
     };
   } catch (e) {
-    console.error('Failed to load settings from storage', e);
+    console.error('Failed to load settings from storage. Backing up corrupt data.', e);
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+      if (raw) {
+        localStorage.setItem(`${STORAGE_KEYS.SETTINGS}_corrupt_backup_${Date.now()}`, raw);
+      }
+    } catch {}
     return DEFAULT_SETTINGS;
   }
 }
 
-export function saveSettingsToStorage(settings: Settings): void {
-  try {
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-  } catch (e) {
-    console.error('Failed to save settings to storage', e);
-  }
+export function saveSettingsToStorage(settings: Settings): { success: boolean; isQuotaError?: boolean } {
+  return safeSetItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
 }
 
 export function loadQuotationsFromStorage(): { quotations: Quotation[]; activeId: string } {
@@ -199,19 +212,25 @@ export function loadQuotationsFromStorage(): { quotations: Quotation[]; activeId
 
     return { quotations: parsed, activeId: resolvedActiveId };
   } catch (e) {
-    console.error('Failed to load quotations from storage', e);
+    console.error('Failed to load quotations from storage. Backing up corrupt data.', e);
+    try {
+      const rawList = localStorage.getItem(STORAGE_KEYS.QUOTATIONS);
+      if (rawList) {
+        localStorage.setItem(`${STORAGE_KEYS.QUOTATIONS}_corrupt_backup_${Date.now()}`, rawList);
+      }
+    } catch {}
     const defaultQuotation = createDefaultQuotation();
     return { quotations: [defaultQuotation], activeId: defaultQuotation.id };
   }
 }
 
-export function saveQuotationsToStorage(quotations: Quotation[], activeId: string): void {
-  try {
-    localStorage.setItem(STORAGE_KEYS.QUOTATIONS, JSON.stringify(quotations));
-    localStorage.setItem(STORAGE_KEYS.ACTIVE_ID, activeId);
-  } catch (e) {
-    console.error('Failed to save quotations to storage', e);
-  }
+export function saveQuotationsToStorage(quotations: Quotation[], activeId: string): { success: boolean; isQuotaError?: boolean } {
+  const result1 = safeSetItem(STORAGE_KEYS.QUOTATIONS, JSON.stringify(quotations));
+  const result2 = safeSetItem(STORAGE_KEYS.ACTIVE_ID, activeId);
+  return {
+    success: result1.success && result2.success,
+    isQuotaError: Boolean(result1.isQuotaError || result2.isQuotaError),
+  };
 }
 
 // Helper to derive title from the first section if needed
