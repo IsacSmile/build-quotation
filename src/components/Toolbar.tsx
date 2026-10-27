@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useQuotation } from '../store/context';
 import { EditableText } from './EditableText';
 
@@ -17,7 +17,26 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   quotationListTriggerRef,
   settingsTriggerRef,
 }) => {
-  const { activeQuotation, dispatch, isSaved, storageError } = useQuotation();
+  const {
+    activeQuotation,
+    dispatch,
+    isSaved,
+    storageError,
+    flushSave,
+    getLatestState,
+  } = useQuotation();
+
+  const [isExporting, setIsExporting] = useState(false);
+  const [toast, setToast] = useState<{ text: string; type: 'error' | 'warning' } | null>(null);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = (text: string, type: 'error' | 'warning') => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToast({ text, type });
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast(null);
+    }, 5000);
+  };
 
   const handleTitleCommit = (newTitle: string) => {
     if (!activeQuotation) return;
@@ -34,6 +53,53 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const handleNewClick = () => {
     onNewQuotation();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleExportPdf = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
+
+    try {
+      // 1. Blur active element to trigger any pending onBlur commit
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+
+      // Wait 350ms for EditableText debounce (300ms) to land
+      await new Promise((resolve) => setTimeout(resolve, 350));
+
+      // Flush save to guarantee state is committed
+      flushSave();
+
+      // Read latest quotation and settings from context
+      const latestState = getLatestState();
+      const currentQuotation =
+        latestState.quotations.find((q) => q.id === latestState.activeQuotationId) ||
+        latestState.quotations[0];
+
+      if (!currentQuotation) {
+        showToast('No active quotation to export.', 'error');
+        setIsExporting(false);
+        return;
+      }
+
+      // 2. Dynamic import of PDF export engine
+      const { exportPdf } = await import('../pdf/exportPdf');
+
+      // 3. Perform export
+      const result = await exportPdf(currentQuotation, latestState.settings);
+
+      if (!result.success) {
+        showToast(result.error || 'Failed to export PDF.', 'error');
+      } else if (result.warnings && result.warnings.length > 0) {
+        showToast(result.warnings.join(' '), 'warning');
+      }
+    } catch (err: any) {
+      console.error('Export PDF error:', err);
+      showToast(err?.message || 'Failed to export PDF.', 'error');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -94,16 +160,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           <span className="toolbar-btn-text">Settings</span>
         </button>
 
-        {/* 4. Export PDF (Disabled for Phase 6) */}
+        {/* 4. Export PDF */}
         <button
           type="button"
-          className="toolbar-btn"
-          disabled={true}
-          title="Coming in the next step"
-          aria-label="Export PDF (Coming in next step)"
+          className="toolbar-btn toolbar-btn--export"
+          onClick={handleExportPdf}
+          disabled={isExporting}
+          title={isExporting ? 'Generating PDF...' : 'Export PDF'}
+          aria-label={isExporting ? 'Generating PDF' : 'Export PDF'}
         >
           <span className="toolbar-btn-icon" aria-hidden="true">📄</span>
-          <span className="toolbar-btn-text">Export PDF</span>
+          <span className="toolbar-btn-text">
+            {isExporting ? 'Generating...' : 'Export PDF'}
+          </span>
         </button>
 
         {/* 5. Saved Indicator */}
@@ -125,6 +194,20 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             : 'Saving...'}
         </div>
       </div>
+
+      {/* Non-blocking inline toast for warnings or errors */}
+      {toast && (
+        <div className="toolbar-toast-container">
+          <div
+            className={`toolbar-toast toolbar-toast--${toast.type}`}
+            role="alert"
+            aria-live="polite"
+          >
+            <span>{toast.text}</span>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
+

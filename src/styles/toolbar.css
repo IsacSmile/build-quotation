@@ -427,3 +427,41 @@
   color: var(--text-muted);
   font-size: 13px;
 }
+
+/* Non-blocking Toast notification for export status */
+.toolbar-toast-container {
+  position: fixed;
+  top: 64px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toolbar-toast {
+  pointer-events: auto;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 380px;
+}
+
+.toolbar-toast--warning {
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.toolbar-toast--error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+

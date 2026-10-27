@@ -8,6 +8,7 @@ import { GroupBlock } from './blocks/GroupBlock';
 import { BlockControls } from './BlockControls';
 import { BlockPicker } from './BlockPicker';
 import { generateId } from '../store/storage';
+import { getGroupNumber } from '../utils/numbering';
 
 interface SectionProps {
   section: SectionType;
@@ -43,8 +44,6 @@ export const Section: React.FC<SectionProps> = ({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [newlyAddedBlockId, setNewlyAddedBlockId] = useState<string | null>(null);
 
-  // Auto-number GroupBlocks within this section
-  let groupCounter = 0;
 
   const handleAddBlock = (type: Block['type']) => {
     const newId = generateId();
@@ -157,8 +156,7 @@ export const Section: React.FC<SectionProps> = ({
               />
             );
           } else if (block.type === 'group') {
-            groupCounter++;
-            const currentGroupNum = groupCounter;
+            const currentGroupNum = getGroupNumber(section, block.id);
             blockComponent = (
               <GroupBlock
                 block={block}
