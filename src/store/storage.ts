@@ -23,12 +23,12 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   paymentEnabled: true,
   bank: {
-    holder: 'Faiz Dev & Co.',
-    bankName: 'Federal Bank',
-    accountNo: '123456789012',
-    ifsc: 'FDRL0001234',
-    swift: 'FDRLINBBXXX',
-    upiId: 'faizdev@upi',
+    holder: '',
+    bankName: '',
+    accountNo: '',
+    ifsc: '',
+    swift: '',
+    upiId: '',
   },
 };
 
@@ -152,7 +152,10 @@ export function safeSetItem(key: string, value: string): { success: boolean; isQ
 export function loadSettingsFromStorage(): Settings {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    if (!raw) return DEFAULT_SETTINGS;
+    if (!raw) {
+      saveSettingsToStorage(DEFAULT_SETTINGS);
+      return DEFAULT_SETTINGS;
+    }
     const parsed = JSON.parse(raw);
     return {
       ...DEFAULT_SETTINGS,

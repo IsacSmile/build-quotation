@@ -33,8 +33,8 @@ The production preview server runs at `http://127.0.0.1:4173`.
 - The document canvas and exported PDF use **Montserrat** (SIL Open Font License - OFL).
 - Four font files are embedded directly: `Montserrat-Regular.ttf`, `Montserrat-Bold.ttf`, `Montserrat-Italic.ttf`, and `Montserrat-BoldItalic.ttf` in [`src/assets/fonts/`](file:///home/faiz/Desktop/build-quotation/src/assets/fonts).
 - Sizing is centrally defined in [`src/config/typography.ts`](file:///home/faiz/Desktop/build-quotation/src/config/typography.ts):
-  - Section headings: `13px` bold (`9.75pt` in PDF)
-  - Content & items: `11px` (`8.25pt` in PDF)
+  - Section headings: `14px` bold (`10.5pt` in PDF)
+  - Content & items: `12px` (`9pt` in PDF)
   - Agency header: label `12px`, name `15px`, address `12px`
   - Page footer: `9px`
 - The Indian Rupee symbol (`₹` / U+20B9) is fully supported natively by Montserrat across all weights and styles.
@@ -70,6 +70,29 @@ In the **Settings (⚙️) > Backup** section:
 - Heading bars are pinned to their first content block (`minPresenceAhead`) to eliminate orphan headers.
 - Multi-page documents automatically distribute content across pages, with the agency logo appearing on Page 1 and the UPI payment QR code appearing on the final page.
 - Bottom-right page numbers (`Page X of Y`) are dynamically computed across all pages.
+
+---
+
+## Deploy to Netlify
+
+Quotation Builder is a static client-side application with no backend or database required:
+1. Connect your GitHub repository to [Netlify](https://www.netlify.com/).
+2. Set the build settings:
+   - **Build command**: `npm run build`
+   - **Publish directory**: `dist`
+3. The included [`netlify.toml`](file:///home/faiz/Desktop/build-quotation/netlify.toml) configures the Node 20 runtime environment and production security headers (`X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY`, plus immutable caching for `/assets/*`).
+   *(Note: A custom Content-Security-Policy header is omitted by design to ensure PDF blob URL generation and embedded font loading function smoothly across all browsers).*
+
+---
+
+## Moving Data to a New Device or URL
+
+Data is stored locally in your browser (`localStorage`) and isolated per domain/origin:
+- **No Login / No Server**: Anyone visiting the URL can use the app immediately; no accounts or logins exist, and your financial data and quotations remain private in your own browser.
+- **Exporting & Migrating**:
+  1. Open **Settings** (⚙️) > **Backup** and click **Export backup**.
+  2. A file named `quotation-backup-YYYY-MM-DD.json` will download containing all your quotations, agency info, and custom logos.
+  3. On your new device or URL (e.g. migrating from localhost to Netlify), open **Settings** (⚙️) > **Backup**, click **Import backup**, select your file, and choose **Replace all**.
 
 ---
 

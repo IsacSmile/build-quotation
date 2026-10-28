@@ -446,7 +446,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, t
                   value={settings.bank.bankName}
                   disabled={!settings.paymentEnabled}
                   onChange={(e) => handleBankChange('bankName', e.target.value)}
-                  placeholder="e.g. Federal Bank"
+                  placeholder="e.g. HDFC Bank"
                 />
               </div>
 
@@ -461,7 +461,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, t
                   value={settings.bank.accountNo}
                   disabled={!settings.paymentEnabled}
                   onChange={(e) => handleBankChange('accountNo', e.target.value)}
-                  placeholder="e.g. 123456789012"
+                  placeholder="e.g. 000123456789"
                 />
               </div>
 
@@ -476,7 +476,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, t
                   value={settings.bank.ifsc}
                   disabled={!settings.paymentEnabled}
                   onChange={(e) => handleBankChange('ifsc', e.target.value)}
-                  placeholder="e.g. FDRL0001234"
+                  placeholder="e.g. HDFC0001234"
                 />
               </div>
 
@@ -491,7 +491,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, t
                   value={settings.bank.swift}
                   disabled={!settings.paymentEnabled}
                   onChange={(e) => handleBankChange('swift', e.target.value)}
-                  placeholder="e.g. FDRLINBBXXX"
+                  placeholder="e.g. HDFCINBBXXX"
                 />
               </div>
 
@@ -506,7 +506,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, t
                   value={settings.bank.upiId}
                   disabled={!settings.paymentEnabled}
                   onChange={(e) => handleBankChange('upiId', e.target.value)}
-                  placeholder="e.g. faizdev@upi"
+                  placeholder="e.g. agency@upi"
                 />
               </div>
             </div>

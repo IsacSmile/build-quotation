@@ -323,7 +323,7 @@ export const PdfDocument: React.FC<PdfDocumentProps> = ({
                     styles.sectionHeadingBar,
                     sIdx === 0 ? { marginTop: 8 * PX } : undefined,
                   ]}
-                  minPresenceAhead={80 * PX}
+                  minPresenceAhead={110 * PX}
                 >
                   <Text style={styles.sectionHeadingText}>{section.heading}</Text>
                 </View>

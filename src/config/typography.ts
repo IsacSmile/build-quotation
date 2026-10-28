@@ -6,8 +6,8 @@
 export const FONT_FAMILY = 'Montserrat';
 
 export const SIZES = {
-  heading: 13,
-  body: 11,
+  heading: 14,
+  body: 12,
   headerLabel: 12,
   headerName: 15,
   headerAddress: 12,
