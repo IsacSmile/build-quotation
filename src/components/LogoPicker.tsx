@@ -1,12 +1,13 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useId, useRef, useState } from 'react';
 import { useQuotation } from '../store/context';
 import { fileToDataUrl } from '../utils/image';
-
-// Automatically discover prebuilt logos from /src/assets/logos/
-const logoModules = import.meta.glob(
-  '/src/assets/logos/*.{svg,png,jpg,jpeg,webp}',
-  { eager: true, query: '?url', import: 'default' }
-) as Record<string, string>;
+import {
+  PREBUILT_LOGOS_BY_KEY,
+  PREBUILT_LOGO_KEYS,
+  DEFAULT_PREBUILT_LOGO_KEY,
+  normalizePrebuiltLogoKey,
+  resolveLogoUrl,
+} from '../utils/prebuiltLogos';
 
 export const LogoPicker: React.FC = () => {
   const { settings, dispatch } = useQuotation();
@@ -14,47 +15,29 @@ export const LogoPicker: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileInputId = useId();
 
-  // Convert discovered modules to array
-  const prebuiltList = Object.entries(logoModules).map(([path, url]) => {
-    const filename = path.split('/').pop()?.replace(/\.[^/.]+$/, '') || 'logo';
+  // Convert discovered modules to array of { key, url, name }
+  const prebuiltList = PREBUILT_LOGO_KEYS.map((key) => {
+    const url = PREBUILT_LOGOS_BY_KEY[key];
+    const name = key.replace(/\.[^/.]+$/, '');
     return {
-      path,
+      key,
       url,
-      name: filename,
+      name,
     };
   });
 
   const currentKind = settings.logo?.kind || 'prebuilt';
   const currentSrc = settings.logo?.src || '';
+  const normalizedCurrentKey = currentKind === 'prebuilt' ? normalizePrebuiltLogoKey(currentSrc) : null;
 
-  // If selected prebuilt file no longer exists or is empty, fall back to first available prebuilt logo
-  useEffect(() => {
-    if (prebuiltList.length === 0) return;
-
-    if (currentKind === 'prebuilt') {
-      const match = prebuiltList.find((p) => p.url === currentSrc);
-      if (!match) {
-        dispatch({
-          type: 'UPDATE_SETTINGS',
-          payload: {
-            logo: {
-              kind: 'prebuilt',
-              src: prebuiltList[0].url,
-            },
-          },
-        });
-      }
-    }
-  }, [prebuiltList, currentKind, currentSrc, dispatch]);
-
-  const handleSelectPrebuilt = (url: string) => {
+  const handleSelectPrebuilt = (key: string) => {
     setErrorMessage(null);
     dispatch({
       type: 'UPDATE_SETTINGS',
       payload: {
         logo: {
           kind: 'prebuilt',
-          src: url,
+          src: key,
         },
       },
     });
@@ -96,19 +79,18 @@ export const LogoPicker: React.FC = () => {
 
   const handleRemoveCustom = () => {
     setErrorMessage(null);
-    const fallbackUrl = prebuiltList[0]?.url || '';
     dispatch({
       type: 'UPDATE_SETTINGS',
       payload: {
         logo: {
           kind: 'prebuilt',
-          src: fallbackUrl,
+          src: DEFAULT_PREBUILT_LOGO_KEY,
         },
       },
     });
   };
 
-  const activeLogoUrl = currentSrc || prebuiltList[0]?.url || '';
+  const activeLogoUrl = resolveLogoUrl(settings.logo);
 
   return (
     <div className="logo-picker">
@@ -131,13 +113,13 @@ export const LogoPicker: React.FC = () => {
       {/* Grid of thumbnails */}
       <div className="logo-grid" role="radiogroup" aria-label="Select agency logo">
         {prebuiltList.map((logo) => {
-          const isSelected = currentKind === 'prebuilt' && currentSrc === logo.url;
+          const isSelected = currentKind === 'prebuilt' && normalizedCurrentKey === logo.key;
           return (
-            <div key={logo.path} className="logo-item">
+            <div key={logo.key} className="logo-item">
               <button
                 type="button"
                 className={`logo-tile ${isSelected ? 'logo-tile--selected' : ''}`}
-                onClick={() => handleSelectPrebuilt(logo.url)}
+                onClick={() => handleSelectPrebuilt(logo.key)}
                 role="radio"
                 aria-checked={isSelected}
                 title={logo.name}

@@ -1,5 +1,6 @@
 import { Block, Quotation, Section, Settings } from '../types';
 import { generateId } from '../store/storage';
+import { normalizePrebuiltLogoKey } from './prebuiltLogos';
 
 export const BACKUP_STORAGE_KEY = 'quotation_builder_last_backup_at';
 
@@ -257,7 +258,8 @@ export function validateBackupJson(rawText: string, fileSizeBytes?: number): Val
         if (err) return { valid: false, error: err };
         logo = { kind: 'custom', src: rawSet.logo.src };
       } else {
-        logo = { kind: 'prebuilt', src: typeof rawSet.logo.src === 'string' ? rawSet.logo.src : '' };
+        const rawSrc = typeof rawSet.logo.src === 'string' ? rawSet.logo.src : '';
+        logo = { kind: 'prebuilt', src: normalizePrebuiltLogoKey(rawSrc) };
       }
     }
 

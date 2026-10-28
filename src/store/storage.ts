@@ -1,5 +1,5 @@
 import { Block, Quotation, Section, Settings } from '../types';
-import defaultLogoUrl from '../assets/logos/faiz-dev-co-logo.png';
+import { DEFAULT_PREBUILT_LOGO_KEY, normalizePrebuiltLogoKey } from '../utils/prebuiltLogos';
 
 export const STORAGE_KEYS = {
   QUOTATIONS: 'quotation_builder_quotations_v1',
@@ -19,7 +19,7 @@ export const DEFAULT_SETTINGS: Settings = {
   address: 'Kerala, Kazhakuttom, 695582',
   logo: {
     kind: 'prebuilt',
-    src: defaultLogoUrl,
+    src: DEFAULT_PREBUILT_LOGO_KEY,
   },
   paymentEnabled: true,
   bank: {
@@ -157,10 +157,16 @@ export function loadSettingsFromStorage(): Settings {
       return DEFAULT_SETTINGS;
     }
     const parsed = JSON.parse(raw);
+    const rawLogo = parsed.logo || DEFAULT_SETTINGS.logo;
+    const normalizedLogo =
+      rawLogo && rawLogo.kind === 'prebuilt'
+        ? { kind: 'prebuilt' as const, src: normalizePrebuiltLogoKey(rawLogo.src) }
+        : rawLogo;
+
     return {
       ...DEFAULT_SETTINGS,
       ...parsed,
-      logo: { ...DEFAULT_SETTINGS.logo, ...(parsed.logo || {}) },
+      logo: normalizedLogo,
       bank: { ...DEFAULT_SETTINGS.bank, ...(parsed.bank || {}) },
     };
   } catch (e) {

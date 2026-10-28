@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuotation } from '../store/context';
+import { resolveLogoUrl } from '../utils/prebuiltLogos';
 
 interface PaperHeaderProps {
   onOpenSettings?: () => void;
@@ -7,6 +8,7 @@ interface PaperHeaderProps {
 
 export const PaperHeader: React.FC<PaperHeaderProps> = ({ onOpenSettings }) => {
   const { settings } = useQuotation();
+  const logoUrl = resolveLogoUrl(settings.logo);
 
   return (
     <header
@@ -34,10 +36,10 @@ export const PaperHeader: React.FC<PaperHeaderProps> = ({ onOpenSettings }) => {
         </div>
 
         {/* Right side logo */}
-        {settings.logo?.src && (
+        {logoUrl && (
           <div className="paper-header-right">
             <img
-              src={settings.logo.src}
+              src={logoUrl}
               alt={`${settings.agencyName || 'Agency'} Logo`}
               className="paper-logo"
             />

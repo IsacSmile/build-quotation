@@ -3,6 +3,7 @@ import { pdf } from '@react-pdf/renderer';
 import { Quotation, Settings } from '../types';
 import { prepareImages } from './prepareImages';
 import { PdfDocument } from './PdfDocument';
+import { resolveLogoUrl } from '../utils/prebuiltLogos';
 
 /**
  * Sanitizes the quotation title to create a safe PDF filename.
@@ -50,8 +51,8 @@ export async function exportPdf(
   try {
     // 1. Prepare images (rasterize logo and QR to 3x PNG data URLs)
     const preparedImages = await prepareImages(
-      settings.logo?.src,
-      settings.paymentEnabled ? settings.qrImage : null
+       settings.logo ? resolveLogoUrl(settings.logo) : null,
+       settings.paymentEnabled ? settings.qrImage : null
     );
 
     // 2. Render PDF to Blob

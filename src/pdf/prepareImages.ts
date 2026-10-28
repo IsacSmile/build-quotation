@@ -1,3 +1,5 @@
+import { resolveLogoUrl } from '../utils/prebuiltLogos';
+
 export interface PreparedImages {
   logoDataUrl: string | null;
   qrDataUrl: string | null;
@@ -114,7 +116,10 @@ export async function prepareImages(
 
   if (logoSrc) {
     try {
-      result.logoDataUrl = await rasterizeImage(logoSrc, {
+      const resolvedSrc = logoSrc.startsWith('data:')
+        ? logoSrc
+        : resolveLogoUrl({ kind: 'prebuilt', src: logoSrc });
+      result.logoDataUrl = await rasterizeImage(resolvedSrc, {
         targetHeight: 48 * 3, // 144px
         maxSide: 1200,
       });

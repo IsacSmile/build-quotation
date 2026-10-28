@@ -95,7 +95,9 @@ export const EditableText: React.FC<EditableTextProps> = ({
 
   const handleInput = () => {
     if (!elementRef.current) return;
-    const currentText = elementRef.current.textContent || '';
+    const currentText = multiline
+      ? (elementRef.current.innerText || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+      : (elementRef.current.textContent || '');
     setIsEmpty(currentText.trim() === '');
 
     if (debounceTimerRef.current) {
@@ -130,7 +132,9 @@ export const EditableText: React.FC<EditableTextProps> = ({
     setIsFocused(false);
 
     if (!elementRef.current) return;
-    const currentText = elementRef.current.textContent || '';
+    const currentText = multiline
+      ? (elementRef.current.innerText || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+      : (elementRef.current.textContent || '');
     if (currentText !== lastCommittedRef.current) {
       commitValue(currentText);
     }
